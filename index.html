@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CASA MASSIMA | Mobile Logistics</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* =========================================
+           iOS / APPLE THEME VARIABLES
+           ========================================= */
+        :root {
+            --ios-bg: #000000;
+            --ios-card: #1c1c1e;
+            --ios-card-border: #2c2c2e;
+            --ios-input-bg: #2c2c2e;
+            --ios-header-bg: rgba(28, 28, 30, 0.85);
+            
+            --brand-red: #ff453a;
+            --brand-gold: #ffd60a;
+            --brand-blue: #0a84ff;
+            --brand-green: #30d158;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --text-tertiary: #48484a;
+
+            --radius-l: 20px;
+            --radius-m: 12px;
+            --radius-s: 8px;
+            
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--ios-bg);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            overflow-x: hidden;
+            padding-bottom: calc(80px + var(--safe-area-bottom));
+        }
+
+        /* =========================================
+           HEADER & NAVIGATION
+           ========================================= */
+        .app-header {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: calc(60px + var(--safe-area-top));
+            padding-top: var(--safe-area-top);
+            background: var(--ios-header-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 0.5px solid var(--ios-card-border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding-left: 16px; padding-right: 16px;
+            z-index: 1000;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { background: none; border: none; color: var(--brand-gold); font-size: 22px; cursor: pointer; padding: 5px; }
+        
+        .app-title {
+            font-weight: 700; font-size: 17px; letter-spacing: -0.5px;
+        }
+        .app-title span { display: block; font-size: 10px; color: var(--text-secondary); font-weight: 400; text-transform: uppercase; }
+
+        .header-actions { display: flex; gap: 10px; }
+        .action-btn { background: none; border: none; color: var(--brand-blue); font-size: 17px; cursor: pointer; }
+
+        /* =========================================
+           SIDEBAR (DRAWER)
+           ========================================= */
+        .drawer-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 1001;
+            opacity: 0; pointer-events: none; transition: 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        .drawer-overlay.active { opacity: 1; pointer-events: all; }
+
+        .drawer {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: 280px; background: var(--ios-card);
+            transform: translateX(-100%); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1002; padding: 30px 20px;
+            display: flex; flex-direction: column;
+            border-right: 1px solid var(--ios-card-border);
+        }
+        .drawer.active { transform: translateX(0); }
+
+        .brand-profile { margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+        .brand-logo { 
+            width: 48px; height: 48px; border-radius: 12px; 
+            background: linear-gradient(135deg, #7a1f20, #3e1213);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--brand-gold); font-weight: 800; font-size: 20px;
+            box-shadow: 0 4px 15px rgba(122, 31, 32, 0.4);
+        }
+        
+        .nav-list { list-style: none; padding: 0; margin: 0; flex: 1; }
+        .nav-item { margin-bottom: 10px; }
+        .nav-link {
+            display: flex; align-items: center; gap: 15px;
+            padding: 14px; border-radius: 12px;
+            color: var(--text-secondary); text-decoration: none;
+            font-weight: 600; font-size: 15px; transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link:active { background: rgba(255, 255, 255, 0.05); color: white; }
+        .nav-link.active { background: rgba(255, 69, 58, 0.15); color: var(--brand-red); }
+        .nav-link i { width: 24px; text-align: center; }
+
+        .user-info {
+            margin-top: auto; padding-top: 20px; border-top: 1px solid var(--ios-card-border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+
+        /* =========================================
+           MAIN CONTENT
+           ========================================= */
+        .container {
+            padding: calc(75px + var(--safe-area-top)) 16px 20px 16px;
+            max-width: 800px; margin: 0 auto;
+        }
+
+        /* KPI Horizontal Scroll */
+        .kpi-scroller {
+            display: flex; gap: 12px; overflow-x: auto;
+            padding-bottom: 10px; margin-bottom: 20px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .kpi-scroller::-webkit-scrollbar { display: none; }
+
+        .kpi-card {
+            min-width: 140px; flex: 1;
+            background: var(--ios-card); padding: 16px;
+            border-radius: var(--radius-l);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: relative; overflow: hidden;
+        }
+        .kpi-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 4px; }
+        .kpi-value { font-size: 20px; font-weight: 700; color: white; display: block; letter-spacing: -0.5px; }
+        .kpi-sub { font-size: 10px; color: var(--text-secondary); margin-top: 2px; display: block; }
+        
+        /* Cards & Inputs */
+        .ios-section { margin-bottom: 24px; }
+        .section-title {
+            font-size: 13px; text-transform: uppercase; color: var(--text-secondary);
+            margin-bottom: 8px; margin-left: 10px; font-weight: 600;
+        }
+
+        .ios-card {
+            background: var(--ios-card); border-radius: var(--radius-m);
+            overflow: hidden;
+        }
+
+        .input-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; border-bottom: 1px solid var(--ios-card-border);
+            min-height: 50px;
+        }
+        .input-row:last-child { border-bottom: none; }
+        
+        .input-label { font-size: 16px; color: var(--text-primary); flex: 1; }
+        
+        .ios-input {
+            background: transparent; border: none;
+            color: var(--brand-blue); text-align: right;
+            font-size: 17px; font-weight: 500; width: 50%;
+            font-family: inherit;
+        }
+        .ios-input:focus { color: white; }
+        
+        /* Select Styling */
+        .ios-select {
+            appearance: none; background: transparent; border: none;
+            color: var(--brand-blue); font-size: 16px; font-weight: 500;
+            direction: rtl; padding-right: 15px;
+        }
+
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--ios-input-bg); transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: var(--brand-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Charts Area */
+        .chart-container {
+            background: var(--ios-card); padding: 20px; border-radius: var(--radius-l);
+            margin-bottom: 20px; height: 300px;
+        }
+
+        /* Table */
+        .sense-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
+        .sense-table th { padding: 10px; color: var(--text-secondary); border-bottom: 1px solid var(--ios-card-border); }
+        .sense-table td { padding: 12px 5px; color: var(--text-primary); border-bottom: 1px solid #222; }
+        .sense-table .highlight { color: var(--brand-gold); font-weight: bold; background: rgba(255, 214, 10, 0.1); }
+        .pos { color: var(--brand-green); } .neg { color: var(--brand-red); }
+
+        /* Modal / Sheet */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            z-index: 2000; display: none; align-items: flex-end; justify-content: center;
+        }
+        .modal-sheet {
+            background: var(--ios-card); width: 100%; max-width: 600px;
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            padding: 20px; padding-bottom: 40px;
+            animation: slideUp 0.3s ease-out;
+            max-height: 80vh; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .sheet-title { font-weight: 700; font-size: 18px; }
+        
+        .scenario-item {
+            background: var(--ios-input-bg); padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMenu()"></div>
+    <aside class="drawer" id="mainDrawer">
+        <div class="brand-profile">
+            <div class="brand-logo">M</div>
+            <div>
+                <div style="font-weight:700; font-size:16px;">CASA MASSIMA</div>
+                <div style="font-size:11px; color:var(--text-secondary);">Enterprise ERP</div>
+            </div>
+        </div>
+        
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="https://renato0503.github.io/Mobile_CasaM_Menu/" class="nav-link active">
+                    <i class="fa fa-truck-fast"></i> Simulador Logístico
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="https://renato0503.github.io/Mobile_CasaM_PerformanceComercial/" class="nav-link">
+                    <i class="fa fa-chart-line"></i> Performance
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="https://renato0503.github.io/Mobile_CasaM_EquipeVendas/" class="nav-link">
+                    <i class="fa fa-users"></i> Equipe
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="https://renato0503.github.io/Mobile_CasaM_Comissoes/" class="nav-link">
+                    <i class="fa fa-file-invoice-dollar"></i> Comissões
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="https://renato0503.github.io/Mobile_CasaM_RotasZonas/" class="nav-link">
+                    <i class="fa fa-map-location-dot"></i> Rotas & Zonas
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-info">
+            <div class="avatar">F</div>
+            <div>
+                <div style="font-weight:600; font-size:14px;">Fausto</div>
+                <div style="font-size:11px; color:var(--text-secondary);">Administrador</div>
+            </div>
+        </div>
+    </aside>
+
+    <header class="app-header">
+        <div class="header-left">
+            <button class="menu-btn" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
+            <div class="app-title">Simulador <span>Versão 8.0</span></div>
+        </div>
+        <div class="header-actions">
+            <button class="action-btn" onclick="openScenarioModal()"><i class="fa fa-folder-open"></i></button>
+            <button class="action-btn" onclick="saveCurrentScenario()"><i class="fa fa-save"></i></button>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <div class="kpi-scroller">
+            <div class="kpi-card">
+                <span class="kpi-label">Receita Broker</span>
+                <span class="kpi-value" id="kpiReceita" style="color:var(--brand-gold)">R$ 0</span>
+                <span class="kpi-sub">Total Previsto</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Lucro Líquido</span>
+                <span class="kpi-value" id="kpiLucro">R$ 0</span>
+                <span class="kpi-sub" id="kpiMargem">0% Margem</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Custo Total</span>
+                <span class="kpi-value" id="kpiCusto" style="color:var(--brand-red)">R$ 0</span>
+                <span class="kpi-sub" id="kpiCustoKm">R$ 0 / km</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Break-Even</span>
+                <span class="kpi-value" id="kpiBreak">0 Kg</span>
+                <span class="kpi-sub">Ponto de Equilíbrio</span>
+            </div>
+        </div>
+
+        <div class="ios-section">
+            <div class="section-title">Parâmetros da Rota</div>
+            <div class="ios-card">
+                <div class="input-row">
+                    <span class="input-label">Descrição</span>
+                    <input type="text" id="inRota" class="ios-input" value="Cuiabá x Sinop" style="width:60%">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Distância (Km)</span>
+                    <input type="number" id="inKm" class="ios-input" value="1050" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Veículo</span>
+                    <select id="selVeiculo" class="ios-select" onchange="setVehicleDefaults()">
+                        <option value="custom">Personalizado</option>
+                        <option value="vuc">VUC (3.5T)</option>
+                        <option value="toco">Toco (6T)</option>
+                        <option value="truck" selected>Truck (14T)</option>
+                        <option value="carreta">Carreta (25T)</option>
+                    </select>
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Consumo (Km/L)</span>
+                    <input type="number" id="inKmL" class="ios-input" value="2.2" step="0.1" oninput="calc()">
+                </div>
+            </div>
+        </div>
+
+        <div class="ios-section">
+            <div class="section-title">Custos Variáveis</div>
+            <div class="ios-card">
+                <div class="input-row">
+                    <span class="input-label">Diesel (R$)</span>
+                    <input type="number" id="inDiesel" class="ios-input" value="6.52" step="0.01" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Manutenção/Km</span>
+                    <input type="number" id="inMaint" class="ios-input" value="0.85" step="0.01" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Pedágios (Total)</span>
+                    <input type="number" id="inPedagio" class="ios-input" value="150" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Diária Motora</span>
+                    <input type="number" id="inDriver" class="ios-input" value="250" oninput="calc()">
+                </div>
+            </div>
+        </div>
+
+        <div class="ios-section">
+            <div class="section-title">Carga & Receita</div>
+            <div class="ios-card">
+                <div class="input-row">
+                    <span class="input-label">Peso Total (Kg)</span>
+                    <input type="number" id="inPeso" class="ios-input" value="5000" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Taxa Fixa (R$/Kg)</span>
+                    <input type="number" id="inRateio" class="ios-input" value="0.15" step="0.01" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label" style="color:var(--brand-gold)">Venda Unitária</span>
+                    <input type="number" id="inVendaUnit" class="ios-input" value="185.00" style="color:var(--brand-gold)" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Peso Unitário (Kg)</span>
+                    <input type="number" id="inPesoUnit" class="ios-input" value="10" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Comissão (%)</span>
+                    <input type="number" id="inComm" class="ios-input" value="30" oninput="calc()">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Frete Retorno?</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chkRetorno" onchange="toggleRetorno()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="input-row" id="rowRetorno" style="display:none; background:rgba(10, 132, 255, 0.1)">
+                    <span class="input-label" style="color:var(--brand-blue)">Valor Retorno</span>
+                    <input type="number" id="inValorRetorno" class="ios-input" value="2500" style="color:var(--brand-blue)" oninput="calc()">
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Análise Visual</div>
+        <div class="chart-container">
+            <canvas id="waterfallChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="doughnutChart"></canvas>
+        </div>
+
+        <div class="section-title">
+            Sensibilidade
+            <select id="selSensibilidade" style="background:none; border:none; color:var(--brand-blue); float:right; font-weight:600" onchange="updateSensitivity()">
+                <option value="diesel">Diesel</option>
+                <option value="comm">Comissão</option>
+            </select>
+        </div>
+        <div class="ios-card" style="padding:10px; margin-bottom:40px;">
+            <table class="sense-table" id="senseTable"></table>
+        </div>
+
+    </main>
+
+    <div class="modal-overlay" id="modalScenarios" onclick="closeScenarioModal(event)">
+        <div class="modal-sheet">
+            <div class="sheet-header">
+                <span class="sheet-title">Meus Cenários</span>
+                <button class="action-btn" onclick="document.getElementById('modalScenarios').style.display='none'">Fechar</button>
+            </div>
+            <div id="scenariosList">
+                </div>
+            <div style="margin-top:20px; font-size:12px; color:#666; text-align:center">
+                Toque em um cenário para carregar.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fmtMoney = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+        let waterfallChart, doughnutChart;
+
+        // VEHICLE PRESETS
+        const vehicles = {
+            vuc: { kmL: 6.5, cap: 3500 },
+            toco: { kmL: 4.5, cap: 6000 },
+            truck: { kmL: 2.2, cap: 14000 },
+            carreta: { kmL: 1.8, cap: 25000 }
+        };
+
+        // --- UI FUNCTIONS ---
+        function toggleMenu() {
+            const drawer = document.getElementById('mainDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            if(drawer.classList.contains('active')) {
+                drawer.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                drawer.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
+        function toggleRetorno() {
+            const isChecked = document.getElementById('chkRetorno').checked;
+            document.getElementById('rowRetorno').style.display = isChecked ? 'flex' : 'none';
+            calc();
+        }
+
+        // --- CORE LOGIC ---
+        window.onload = () => {
+            initCharts();
+            calc();
+        };
+
+        function setVehicleDefaults() {
+            const type = document.getElementById('selVeiculo').value;
+            if (vehicles[type]) {
+                document.getElementById('inKmL').value = vehicles[type].kmL;
+                calc();
+            }
+        }
+
+        function calc() {
+            // Inputs retrieval
+            const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+            
+            const km = getVal('inKm');
+            const kmL = getVal('inKmL') || 1;
+            const diesel = getVal('inDiesel');
+            const maint = getVal('inMaint');
+            const tolls = getVal('inPedagio');
+            const driver = getVal('inDriver');
+            const peso = getVal('inPeso');
+            const rateio = getVal('inRateio');
+            const vendaUnit = getVal('inVendaUnit');
+            const pesoUnit = getVal('inPesoUnit') || 1;
+            const commPerc = getVal('inComm');
+            const hasReturn = document.getElementById('chkRetorno').checked;
+            const returnRevenue = hasReturn ? getVal('inValorRetorno') : 0;
+
+            // Calculations
+            const fuelCost = (km / kmL) * diesel;
+            const maintCost = km * maint;
+            const fixedCost = peso * rateio;
+            const totalCost = fuelCost + maintCost + fixedCost + tolls + driver;
+
+            const qty = peso / pesoUnit;
+            const totalSales = qty * vendaUnit;
+            const brokerRevenue = (totalSales * (commPerc / 100)) + returnRevenue;
+
+            const profit = brokerRevenue - totalCost;
+            const margin = brokerRevenue > 0 ? (profit / brokerRevenue) * 100 : 0;
+
+            // Break Even
+            const revPerKg = (vendaUnit / pesoUnit) * (commPerc/100);
+            const breakEvenKg = revPerKg > 0 ? totalCost / revPerKg : 0;
+
+            // Update UI
+            document.getElementById('kpiReceita').innerText = fmtMoney.format(brokerRevenue);
+            document.getElementById('kpiCusto').innerText = fmtMoney.format(totalCost);
+            document.getElementById('kpiCustoKm').innerText = fmtMoney.format(totalCost / km) + "/km";
+            
+            const elLucro = document.getElementById('kpiLucro');
+            elLucro.innerText = fmtMoney.format(profit);
+            elLucro.style.color = profit >= 0 ? '#30d158' : '#ff453a';
+            
+            document.getElementById('kpiMargem').innerText = margin.toFixed(1) + "% Margem";
+            document.getElementById('kpiBreak').innerText = Math.ceil(breakEvenKg) + " Kg";
+
+            updateCharts(brokerRevenue, fuelCost, maintCost, fixedCost, tolls+driver, profit);
+            updateSensitivity();
+        }
+
+        // --- CHARTS CONFIG ---
+        function initCharts() {
+            Chart.defaults.color = '#8e8e93';
+            Chart.defaults.font.family = "-apple-system, sans-serif";
+            
+            // Doughnut
+            const ctxD = document.getElementById('doughnutChart').getContext('2d');
+            doughnutChart = new Chart(ctxD, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Diesel', 'Manutenção', 'Fixo', 'Extras'],
+                    datasets: [{ data: [1,1,1,1], backgroundColor: ['#ff453a', '#ff9f0a', '#ac8e68', '#ffd60a'], borderWidth: 0 }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 20 } } } 
+                }
+            });
+
+            // Waterfall
+            const ctxW = document.getElementById('waterfallChart').getContext('2d');
+            waterfallChart = new Chart(ctxW, {
+                type: 'bar',
+                data: {
+                    labels: ['Receita', 'Diesel', 'Manut.', 'Fixo', 'Extras', 'Lucro'],
+                    datasets: [{ label: 'Fluxo', data: [0,0,0,0,0,0], backgroundColor: '#333', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#2c2c2e' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(rev, fuel, maint, fixed, others, profit) {
+            doughnutChart.data.datasets[0].data = [fuel, maint, fixed, others];
+            doughnutChart.update();
+
+            waterfallChart.data.datasets[0].data = [rev, -fuel, -maint, -fixed, -others, profit];
+            waterfallChart.data.datasets[0].backgroundColor = [
+                '#ffd60a', '#ff453a', '#ff9f0a', '#8e8e93', '#636366', (profit >= 0 ? '#30d158' : '#ff453a')
+            ];
+            waterfallChart.update();
+        }
+
+        // --- SENSITIVITY & SCENARIOS ---
+        function updateSensitivity() {
+            const mode = document.getElementById('selSensibilidade').value;
+            const table = document.getElementById('senseTable');
+            let html = `<tr><th>Variação</th><th>${mode === 'diesel' ? 'Novo Preço' : 'Nova %'}</th><th>Lucro</th></tr>`;
+            
+            const variations = [-10, -5, 0, 5, 10];
+            const baseDiesel = parseFloat(document.getElementById('inDiesel').value);
+            const baseComm = parseFloat(document.getElementById('inComm').value);
+            
+            // Re-fetch current globals for calc
+            const km = parseFloat(document.getElementById('inKm').value);
+            const kmL = parseFloat(document.getElementById('inKmL').value);
+            const maint = parseFloat(document.getElementById('inMaint').value);
+            const fixed = parseFloat(document.getElementById('inPeso').value) * parseFloat(document.getElementById('inRateio').value);
+            const extras = parseFloat(document.getElementById('inPedagio').value) + parseFloat(document.getElementById('inDriver').value);
+            const salesTotal = (parseFloat(document.getElementById('inPeso').value)/parseFloat(document.getElementById('inPesoUnit').value)) * parseFloat(document.getElementById('inVendaUnit').value);
+
+            variations.forEach(v => {
+                let simDiesel = baseDiesel;
+                let simComm = baseComm;
+                
+                if(mode === 'diesel') simDiesel = baseDiesel * (1 + v/100);
+                if(mode === 'comm') simComm = baseComm * (1 + v/100);
+
+                const cost = ((km/kmL)*simDiesel) + (km*maint) + fixed + extras;
+                const rev = salesTotal * (simComm/100);
+                const profit = rev - cost;
+
+                const cssClass = v === 0 ? 'highlight' : (profit >= 0 ? 'pos' : 'neg');
+                const labelVal = mode === 'diesel' ? fmtMoney.format(simDiesel) : simComm.toFixed(1) + '%';
+
+                html += `<tr>
+                    <td style="color:#666">${v > 0 ? '+'+v : v}%</td>
+                    <td>${labelVal}</td>
+                    <td class="${cssClass}">${fmtMoney.format(profit)}</td>
+                </tr>`;
+            });
+            table.innerHTML = html;
+        }
+
+        // Scenario Manager
+        function openScenarioModal() {
+            const list = document.getElementById('scenariosList');
+            const scenarios = JSON.parse(localStorage.getItem('cm_scenarios') || '[]');
+            
+            if(scenarios.length === 0) {
+                list.innerHTML = '<p style="color:#666; text-align:center; padding:20px">Nenhum cenário salvo.</p>';
+            } else {
+                let html = '';
+                scenarios.forEach((s, index) => {
+                    html += `
+                        <div class="scenario-item" onclick="loadScenario(${index})">
+                            <span style="font-weight:600; color:white">${s.name}</span>
+                            <span style="font-size:12px; color:#888">${s.date}</span>
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+            }
+            document.getElementById('modalScenarios').style.display = 'flex';
+        }
+
+        function closeScenarioModal(e) {
+            if(e.target.id === 'modalScenarios') {
+                document.getElementById('modalScenarios').style.display = 'none';
+            }
+        }
+
+        function saveCurrentScenario() {
+            const name = prompt("Nome do Cenário:");
+            if(!name) return;
+
+            const scenario = {
+                name: name,
+                date: new Date().toLocaleDateString(),
+                data: {
+                    inRota: document.getElementById('inRota').value,
+                    inKm: document.getElementById('inKm').value,
+                    selVeiculo: document.getElementById('selVeiculo').value,
+                    inKmL: document.getElementById('inKmL').value,
+                    inDiesel: document.getElementById('inDiesel').value,
+                    inPeso: document.getElementById('inPeso').value,
+                    inComm: document.getElementById('inComm').value
+                    // Adicionar outros campos se necessário
+                }
+            };
+
+            let scenarios = JSON.parse(localStorage.getItem('cm_scenarios') || '[]');
+            scenarios.push(scenario);
+            localStorage.setItem('cm_scenarios', JSON.stringify(scenarios));
+            alert("Salvo!");
+        }
+
+        function loadScenario(index) {
+            const scenarios = JSON.parse(localStorage.getItem('cm_scenarios') || '[]');
+            const s = scenarios[index];
+            if(s && s.data) {
+                for(let key in s.data) {
+                    if(document.getElementById(key)) document.getElementById(key).value = s.data[key];
+                }
+                calc();
+                document.getElementById('modalScenarios').style.display = 'none';
+            }
+        }
+
+    </script>
+</body>
+</html>
